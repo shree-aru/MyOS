@@ -1,0 +1,12 @@
+# Ignore compiled objects and binaries recursively
+**/*.o
+**/*.bin
+**/*.elf
+
+# Ignore disk images and ISO binaries recursively
+**/*.img
+**/*.vdi
+**/*.iso
+
+# Ignore VS Code local settings
+.vscode/
