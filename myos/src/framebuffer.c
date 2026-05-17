@@ -241,14 +241,14 @@ void fb_blit(uint32_t* src, int sx, int sy, int sw, int sh,
     }
 }
 
-void fb_scroll_region(int x, int y, int w, int h, int lines) {
+void fb_scroll_region(int x, int y, int w, int h, int lines, uint32_t bg_color) {
     if (!fb.available || !back_buffer) return;
     int pixel_lines = lines * FONT_HEIGHT;
     int bpp_bytes = fb.bpp / 8;
 
     if (pixel_lines >= h) {
         /* Clear entire region */
-        fb_fill_rect(x, y, w, h, COLOR_WINDOW_BG);
+        fb_fill_rect(x, y, w, h, bg_color);
         return;
     }
 
@@ -260,5 +260,5 @@ void fb_scroll_region(int x, int y, int w, int h, int lines) {
     }
 
     /* Clear newly exposed area */
-    fb_fill_rect(x, y + h - pixel_lines, w, pixel_lines, COLOR_WINDOW_BG);
+    fb_fill_rect(x, y + h - pixel_lines, w, pixel_lines, bg_color);
 }

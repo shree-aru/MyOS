@@ -343,7 +343,7 @@ void fb_draw_gradient_rect(int x, int y, int w, int h,
 void fb_blit(uint32_t* src, int sx, int sy, int sw, int sh,
              int dx, int dy);
 void fb_swap(void);                /* Swap back buffer to front */
-void fb_scroll_region(int x, int y, int w, int h, int lines);
+void fb_scroll_region(int x, int y, int w, int h, int lines, uint32_t bg_color);
 
 /* ============================================================================
  * Font (8x16 Bitmap)
@@ -439,6 +439,17 @@ void ata_write_sector(uint32_t lba, const uint8_t* buffer);
 /* ============================================================================
  * Custom MyFS file system API
  * ============================================================================ */
+#define MYFS_MAGIC          0x594D4F53      /* "MYOS" in ASCII */
+#define MYFS_MAX_FILES      64
+#define MYFS_FILENAME_MAX   20
+
+typedef struct {
+    char     filename[MYFS_FILENAME_MAX];
+    uint32_t start_sector;
+    uint32_t file_size;
+    uint32_t active;
+} __attribute__((packed)) myfs_entry_t;
+
 void myfs_init(void);
 void myfs_format(void);
 void myfs_list(void);
@@ -446,6 +457,8 @@ bool myfs_create(const char* name);
 bool myfs_write(const char* name, const uint8_t* data, uint32_t size);
 int32_t myfs_read(const char* name, uint8_t* buffer, uint32_t max_size);
 bool myfs_delete(const char* name);
+myfs_entry_t* myfs_get_entry(int index);
+int myfs_count_files(void);
 
 /* ============================================================================
  * Custom Forth compiler API

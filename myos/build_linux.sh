@@ -78,10 +78,10 @@ dd if=/dev/zero of=myos_disk.img bs=512 count=40000
 echo "=== Creating Raw Bootable Disk Image ==="
 # Place Stage 1 at Sector 0 (offset 0)
 dd if=src/boot1.bin of=myos_disk.img bs=512 count=1 seek=0 conv=notrunc
-# Place Stage 2 at Sector 1 (offset 512 bytes)
-dd if=src/boot2.bin of=myos_disk.img bs=512 count=1 seek=1 conv=notrunc
-# Place C Kernel at Sector 2 (offset 1024 bytes)
-dd if=kernel.bin of=myos_disk.img bs=512 seek=2 conv=notrunc
+# Place Stage 2 at Sectors 1-2 (offset 512 bytes, 1024 bytes total - boot menu)
+dd if=src/boot2.bin of=myos_disk.img bs=512 count=2 seek=1 conv=notrunc
+# Place C Kernel at Sector 3 (offset 1536 bytes)
+dd if=kernel.bin of=myos_disk.img bs=512 seek=3 conv=notrunc
 
 echo "=== MyOS Build Successful! ==="
 ls -lh myos_disk.img kernel.elf

@@ -7,20 +7,12 @@
 
 #include "kernel.h"
 
-#define MYFS_MAGIC          0x594D4F53      /* "MYOS" in ASCII */
-#define MYFS_MAX_FILES      64
-#define MYFS_FILENAME_MAX   20
-
+/* Sector layout constants (not needed by GUI, only by myfs.c internals) */
 #define MYFS_SUPER_SECTOR   200              /* Superblock resides on Sector 200 */
 #define MYFS_DIR_START      201              /* Directory entries reside on Sectors 201-204 */
 #define MYFS_DATA_START     205              /* Data blocks reside on Sectors 205+ */
 
-typedef struct {
-    char     filename[MYFS_FILENAME_MAX];
-    uint32_t start_sector;
-    uint32_t file_size;       /* In bytes */
-    uint32_t active;          /* 1 if valid, 0 if deleted */
-} __attribute__((packed)) myfs_entry_t;
+/* myfs_entry_t, MYFS_MAX_FILES, MYFS_FILENAME_MAX are defined in kernel.h */
 
 typedef struct {
     uint32_t magic;
@@ -37,5 +29,7 @@ bool myfs_create(const char* name);
 bool myfs_write(const char* name, const uint8_t* data, uint32_t size);
 int32_t myfs_read(const char* name, uint8_t* buffer, uint32_t max_size);
 bool myfs_delete(const char* name);
+myfs_entry_t* myfs_get_entry(int index);
+int myfs_count_files(void);
 
 #endif /* MYFS_H */

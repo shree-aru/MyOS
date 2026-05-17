@@ -112,13 +112,13 @@ char* itoa(int val, char* buf, int base) {
     char* p = buf;
     char* p1, *p2;
     int neg = 0;
-
+    uint32_t uval;
     if (val < 0 && base == 10) {
         neg = 1;
-        val = -val;
+        uval = (uint32_t)(-(int64_t)val);
+    } else {
+        uval = (uint32_t)val;
     }
-
-    uint32_t uval = (uint32_t)val;
     do {
         int rem = uval % base;
         *p++ = (rem < 10) ? ('0' + rem) : ('a' + rem - 10);

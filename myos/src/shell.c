@@ -35,7 +35,7 @@ static void con_init(void) {
 static void con_scroll(void) {
     if (con_y >= con_max_rows) {
         if (use_fb) {
-            fb_scroll_region(0, 0, fb_get()->width, fb_get()->height, 1);
+            fb_scroll_region(0, 0, fb_get()->width, fb_get()->height, 1, COLOR_BLACK);
         } else {
             /* VGA scroll handled by vga_putchar */
         }
@@ -95,7 +95,7 @@ static void con_put_dec(uint32_t val) {
     con_puts(buf);
 }
 
-static void con_put_hex(uint32_t val) {
+static void __attribute__((unused)) con_put_hex(uint32_t val) {
     char buf[12];
     con_puts("0x");
     utoa(val, buf, 16);
@@ -119,23 +119,33 @@ static void cmd_help(void) {
     con_puts("\n");
     con_puts("  Available commands:\n");
     con_puts("  -------------------------------------------\n");
-    con_puts("  help      - Show this help message\n");
-    con_puts("  clear     - Clear the screen\n");
-    con_puts("  echo TEXT - Print text\n");
-    con_puts("  mem       - Show memory information\n");
-    con_puts("  uptime    - Show system uptime\n");
-    con_puts("  gui       - Launch graphical desktop\n");
-    con_puts("  forth     - Launch interactive Forth compiler\n");
-    con_puts("  fslist    - List all files on MyFS\n");
-    con_puts("  fsformat  - Format the MyFS filesystem disk\n");
-    con_puts("  fscreate  - Create empty file (fscreate FILENAME)\n");
-    con_puts("  fsread    - Read & print file (fsread FILENAME)\n");
-    con_puts("  fswrite   - Write text to file (fswrite FILENAME TEXT)\n");
-    con_puts("  fsdelete  - Delete file (fsdelete FILENAME)\n");
-    con_puts("  reboot    - Reboot the system\n");
-    con_puts("  shutdown  - Power off the system\n");
-    con_puts("  poweroff  - Power off the system (alias)\n");
-    con_puts("  about     - About MyOS\n");
+    con_puts("  help       - Show this help message\n");
+    con_puts("  clear      - Clear the screen\n");
+    con_puts("  echo TEXT  - Print text\n");
+    con_puts("  mem        - Show memory information\n");
+    con_puts("  uptime     - Show system uptime\n");
+    con_puts("  gui        - Launch graphical desktop\n");
+    con_puts("  forth      - Launch interactive Forth compiler\n");
+    con_puts("  neofetch   - Display system info with ASCII art\n");
+    con_puts("  whoami     - Show current user\n");
+    con_puts("  hostname   - Show system hostname\n");
+    con_puts("  uname      - Show OS version info\n");
+    con_puts("  date       - Show session time\n");
+    con_puts("  ps         - Show running processes\n");
+    con_puts("  ls         - List files (alias for fslist)\n");
+    con_puts("  cat FILE   - Read file (alias for fsread)\n");
+    con_puts("  touch FILE - Create file (alias for fscreate)\n");
+    con_puts("  rm FILE    - Delete file (alias for fsdelete)\n");
+    con_puts("  fslist     - List all files on MyFS\n");
+    con_puts("  fsformat   - Format the MyFS filesystem disk\n");
+    con_puts("  fscreate   - Create empty file (fscreate FILENAME)\n");
+    con_puts("  fsread     - Read & print file (fsread FILENAME)\n");
+    con_puts("  fswrite    - Write text to file (fswrite FILE TEXT)\n");
+    con_puts("  fsdelete   - Delete file (fsdelete FILENAME)\n");
+    con_puts("  reboot     - Reboot the system\n");
+    con_puts("  shutdown   - Power off the system\n");
+    con_puts("  poweroff   - Power off the system (alias)\n");
+    con_puts("  about      - About MyOS\n");
     con_puts("\n");
 }
 
@@ -195,6 +205,89 @@ static void cmd_reboot(void) {
 static void cmd_shutdown(void) {
     con_puts("\n  Powering off...\n");
     sys_shutdown();
+}
+
+static void cmd_neofetch(void) {
+    con_puts("\n");
+    con_puts("        __  __        ___  ____\n");
+    con_puts("       |  \\/  |_   _ / _ \\/ ___|\n");
+    con_puts("       | |\\/| | | | | | | \\___ \\\n");
+    con_puts("       | |  | | |_| | |_| |___) |\n");
+    con_puts("       |_|  |_|\\__, |\\___/|____/\n");
+    con_puts("               |___/\n");
+    con_puts("\n");
+    con_puts("  OS:        MyOS v0.1.0\n");
+    con_puts("  Kernel:    Hybrid Microkernel (i686)\n");
+    con_puts("  Uptime:    ");
+    uint32_t secs = timer_get_seconds();
+    uint32_t mins = secs / 60;
+    uint32_t hrs  = mins / 60;
+    con_put_dec(hrs);
+    con_puts("h ");
+    con_put_dec(mins % 60);
+    con_puts("m ");
+    con_put_dec(secs % 60);
+    con_puts("s\n");
+    con_puts("  Memory:    ");
+    con_put_dec(pmm_get_total_memory() / 1024);
+    con_puts(" MB total, ");
+    con_put_dec(pmm_get_free_frames() * 4 / 1024);
+    con_puts(" MB free\n");
+    framebuffer_t* fb = fb_get();
+    con_puts("  Display:   ");
+    if (fb->available) {
+        con_put_dec(fb->width);
+        con_puts("x");
+        con_put_dec(fb->height);
+        con_puts("x");
+        con_put_dec(fb->bpp);
+        con_puts(" (VESA LFB)\n");
+    } else {
+        con_puts("80x25 (VGA Text Mode)\n");
+    }
+    con_puts("  Shell:     MyOS Shell v0.1.0\n");
+    con_puts("  Designed:  Shreearu Bisoi\n");
+    con_puts("\n");
+}
+
+static void cmd_whoami(void) {
+    con_puts("\n  root@myos\n\n");
+}
+
+static void cmd_hostname(void) {
+    con_puts("\n  myos\n\n");
+}
+
+static void cmd_uname(void) {
+    con_puts("\n  MyOS 0.1.0 i686\n\n");
+}
+
+static void cmd_date(void) {
+    uint32_t secs = timer_get_seconds();
+    uint32_t mins = secs / 60;
+    uint32_t hrs  = (mins / 60) % 24;
+    con_puts("\n  Session time: ");
+    if (hrs < 10) con_putchar('0');
+    con_put_dec(hrs);
+    con_putchar(':');
+    if ((mins % 60) < 10) con_putchar('0');
+    con_put_dec(mins % 60);
+    con_putchar(':');
+    if ((secs % 60) < 10) con_putchar('0');
+    con_put_dec(secs % 60);
+    con_puts("\n\n");
+}
+
+static void cmd_ps(void) {
+    con_puts("\n");
+    con_puts("  PID  STATE    NAME\n");
+    con_puts("  ---  -------  ----------------\n");
+    con_puts("    0  running  [kernel]\n");
+    con_puts("    1  running  [shell]\n");
+    con_puts("    2  idle     [timer_irq]\n");
+    con_puts("    3  idle     [keyboard_irq]\n");
+    con_puts("    4  idle     [mouse_irq]\n");
+    con_puts("\n");
 }
 
 /* ---- Shell main loop ---- */
@@ -333,6 +426,51 @@ static void shell_execute(const char* cmd) {
         cmd_reboot();
     } else if (strcmp(cmd, "shutdown") == 0 || strcmp(cmd, "poweroff") == 0) {
         cmd_shutdown();
+    } else if (strcmp(cmd, "neofetch") == 0) {
+        cmd_neofetch();
+    } else if (strcmp(cmd, "whoami") == 0) {
+        cmd_whoami();
+    } else if (strcmp(cmd, "hostname") == 0) {
+        cmd_hostname();
+    } else if (strcmp(cmd, "uname") == 0) {
+        cmd_uname();
+    } else if (strcmp(cmd, "date") == 0) {
+        cmd_date();
+    } else if (strcmp(cmd, "ps") == 0) {
+        cmd_ps();
+    } else if (strcmp(cmd, "ls") == 0) {
+        con_puts("\n");
+        myfs_list();
+        con_puts("\n");
+    } else if (strncmp(cmd, "cat ", 4) == 0) {
+        const char* name = cmd + 4;
+        while (*name == ' ') name++;
+        static uint8_t cat_buf[2048];
+        memset(cat_buf, 0, sizeof(cat_buf));
+        int32_t size = myfs_read(name, cat_buf, sizeof(cat_buf) - 1);
+        if (size >= 0) {
+            con_puts("\n");
+            con_puts((const char*)cat_buf);
+            con_puts("\n\n");
+        } else {
+            con_puts("\n  Error: File not found.\n\n");
+        }
+    } else if (strncmp(cmd, "touch ", 6) == 0) {
+        const char* name = cmd + 6;
+        while (*name == ' ') name++;
+        if (myfs_create(name)) {
+            con_puts("\n  File created successfully.\n\n");
+        } else {
+            con_puts("\n  Error: Could not create file.\n\n");
+        }
+    } else if (strncmp(cmd, "rm ", 3) == 0) {
+        const char* name = cmd + 3;
+        while (*name == ' ') name++;
+        if (myfs_delete(name)) {
+            con_puts("\n  File deleted successfully.\n\n");
+        } else {
+            con_puts("\n  Error: File not found.\n\n");
+        }
     } else {
         con_puts("\n  Unknown command: ");
         con_puts(cmd);
@@ -352,10 +490,11 @@ void shell_run(void) {
     /* Boot banner */
     con_puts("\n");
     con_puts("  ==================================================\n");
-    con_puts("       MyOS v0.1.0 - Low Resource Operating System\n");
+    con_puts("    MyOS v0.1.0 - Engineered by Shreearu Bisoi\n");
     con_puts("  ==================================================\n");
     con_puts("  Type 'help' for available commands.\n");
     con_puts("  Type 'gui' to launch the graphical desktop.\n");
+    con_puts("  Type 'neofetch' to view system information.\n");
     con_puts("\n");
 
     shell_prompt();

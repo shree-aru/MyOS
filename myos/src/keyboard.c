@@ -87,17 +87,30 @@ static void keyboard_callback(registers_t* regs) {
         return;
 
     /* Translate scancode to ASCII */
-    char c;
-    if (shift_pressed)
-        c = scancode_shift_table[scancode];
-    else
-        c = scancode_table[scancode];
+    char c = 0;
+    if (scancode == 0x3C) { // F2 key
+        c = 0x02; // Map F2 to Ctrl+B (0x02)
+    } else {
+        if (shift_pressed)
+            c = scancode_shift_table[scancode];
+        else
+            c = scancode_table[scancode];
+    }
 
     /* Apply caps lock to letters */
     if (caps_lock && c >= 'a' && c <= 'z')
         c -= 32;
     else if (caps_lock && c >= 'A' && c <= 'Z')
         c += 32;
+
+    /* Handle Ctrl combinations */
+    if (ctrl_pressed && c) {
+        if (c >= 'a' && c <= 'z') {
+            c = c - 'a' + 1;
+        } else if (c >= 'A' && c <= 'Z') {
+            c = c - 'A' + 1;
+        }
+    }
 
     if (c)
         kb_buffer_put(c);

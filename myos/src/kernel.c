@@ -161,7 +161,15 @@ void kmain(multiboot_info_t* mbi, uint32_t magic) {
         hlt();
     }
 
-    /* ---- Phase 5: Launch shell ---- */
+    /* ---- Phase 5: Launch GUI or Shell ---- */
+    if (fb->available) {
+        gui_run();
+        
+        /* Fallback: if GUI is closed, go to shell in text mode */
+        fb->available = false;
+        vga_init();
+    }
+
     shell_init();
     shell_run();
 

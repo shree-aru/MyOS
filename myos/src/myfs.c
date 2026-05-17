@@ -8,7 +8,7 @@
 static myfs_superblock_t superblock;
 static myfs_entry_t directory[MYFS_MAX_FILES];
 
-// Read directory entries from sectors 17-20 into RAM
+// Read directory entries from sectors 201-204 into RAM
 static void myfs_read_directory(void) {
     uint8_t* ptr = (uint8_t*)directory;
     for (int i = 0; i < 4; i++) {
@@ -16,7 +16,7 @@ static void myfs_read_directory(void) {
     }
 }
 
-// Write RAM directory entries back to sectors 17-20
+// Write RAM directory entries back to sectors 201-204
 static void myfs_write_directory(void) {
     uint8_t* ptr = (uint8_t*)directory;
     for (int i = 0; i < 4; i++) {
@@ -24,12 +24,12 @@ static void myfs_write_directory(void) {
     }
 }
 
-// Read superblock from sector 16 into RAM
+// Read superblock from sector 200 into RAM
 static void myfs_read_superblock(void) {
     ata_read_sector(MYFS_SUPER_SECTOR, (uint8_t*)&superblock);
 }
 
-// Write RAM superblock back to sector 16
+// Write RAM superblock back to sector 200
 static void myfs_write_superblock(void) {
     ata_write_sector(MYFS_SUPER_SECTOR, (uint8_t*)&superblock);
 }
@@ -164,6 +164,11 @@ bool myfs_write(const char* name, const uint8_t* data, uint32_t size) {
     if (num_sectors == 0) num_sectors = 1;
     
     uint32_t start_sector = superblock.free_sector_start;
+
+    // Check for disk space exhaustion
+    if (start_sector + num_sectors > superblock.total_sectors) {
+        return false;
+    }
     
     // Sector-by-sector write with 512-byte temporary buffering
     uint8_t temp_buf[512];
@@ -233,4 +238,18 @@ bool myfs_delete(const char* name) {
         }
     }
     return false;
+}
+
+myfs_entry_t* myfs_get_entry(int index) {
+    if (index < 0 || index >= MYFS_MAX_FILES) return NULL;
+    if (directory[index].active != 1) return NULL;
+    return &directory[index];
+}
+
+int myfs_count_files(void) {
+    int count = 0;
+    for (int i = 0; i < MYFS_MAX_FILES; i++) {
+        if (directory[i].active == 1) count++;
+    }
+    return count;
 }

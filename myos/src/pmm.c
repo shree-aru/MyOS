@@ -87,6 +87,9 @@ void pmm_init(multiboot_info_t* mbi) {
         bitmap_set(i);
     }
 
+    /* Reserve Forth JIT compiler execution buffer (0x2000000) */
+    bitmap_set(0x2000000 / PAGE_SIZE);
+
     /* Count used frames */
     used_frames = 0;
     for (uint32_t i = 0; i < total_frames && i < BITMAP_SIZE * 32; i++) {
